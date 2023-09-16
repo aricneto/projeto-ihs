@@ -1,0 +1,22 @@
+LEDS verdes:
+8 bits, escreve da esquerda pra direita
+
+LEDS vermelhos:
+18 bits, escreve da esquerda pra direita
+
+DISPLAYS:
+displays estão invertidos (L é R, R é L)
+
+o bit do display é escrito direita pra esquerda 
+- (o bit menos significativo é o `a`, o mais significativo é o ponto (não usado))
+- os caracteres sao escritos da esquerda pra direita
+- exemplo (cubo:)
+    - 0b01000110010000010000001101000000
+
+
+SWITCHES:
+o switch0 é o menos significativo, o switch17 é o mais significativo
+
+
+programar os vermelhos, se for usar os verdes, linkar eles com o switch
+- COMPILAR O DRIVER DUAS VEZES! DOIS SH SETUP.SH!
