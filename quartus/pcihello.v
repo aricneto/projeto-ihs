@@ -38,7 +38,17 @@ module pcihello (
     PCIE_WAKE_N,
 
     //////////// Fan Control //////////
-    FAN_CTRL
+    FAN_CTRL,
+
+    // IR
+    IRDA_RXD,
+
+    // LCD
+    LCD_DATA,
+    LCD_EN,
+    LCD_ON,
+    LCD_RS,
+    LCD_RW
 );
 
   //=======================================================
@@ -83,18 +93,29 @@ module pcihello (
   //////////// Fan Control //////////
   inout FAN_CTRL;
 
+  // LCD
+  output [7:0] LCD_DATA;
+  output       LCD_EN;
+  output       LCD_ON;
+  output       LCD_RS;
+  output       LCD_RW;
+
+  input IRDA_RXD;
+
 
   //=======================================================
   //  REG/WIRE declarations
   //=======================================================
 
-  wire [31:0] hex_bus;
-  wire [31:0] hex_bus2;
+  wire [31:0] hex_bus_r;
+  wire [31:0] hex_bus_l;
 
   wire [31:0] switches_bus;
   wire [31:0] push_buttons_bus;
   wire [31:0] led_red_bus;
   wire [31:0] led_green_bus;
+  wire [31:0] ir_receiver_bus;
+  wire [31:0] lcd_bus;
   wire        fan_bus;
 
 
@@ -109,27 +130,31 @@ module pcihello (
       .pcie_hard_ip_0_powerdown_gxb_powerdown    (PCIE_WAKE_N),
       .pcie_hard_ip_0_refclk_export              (PCIE_REFCLK_P),
       .pcie_hard_ip_0_pcie_rstn_export           (PCIE_PERST_N),
-      .hex_display_external_connection_export    (hex_bus),
-      .hex_display_2_external_connection_export  (hex_bus2),
+      .hex_display_r_external_connection_export  (hex_bus_r),
+      .hex_display_l_external_connection_export  (hex_bus_l),
       .switches_external_connection_export       (switches_bus),
       .push_buttons_external_connection_export   (push_buttons_bus),
       .red_leds_external_connection_export       (led_red_bus),
       .green_leds_external_connection_export     (led_green_bus),
+      .lcd_external_connection_export            (lcd_bus),
+      .ir_receiver_external_connection_export    (ir_receiver_bus),
   );
 
 
   //////////// FAN Control //////////
   assign FAN_CTRL = 1'b1;  // turn on FAN
 
-  // 7seg
-  assign HEX0 = hex_bus[6:0];
-  assign HEX1 = hex_bus[14:8];
-  assign HEX2 = hex_bus[22:16];
-  assign HEX3 = hex_bus[30:24];
-  assign HEX4 = hex_bus2[6:0];
-  assign HEX5 = hex_bus2[14:8];
-  assign HEX6 = hex_bus2[22:16];
-  assign HEX7 = hex_bus2[30:24];
+  // 7seg r
+  assign HEX0 = hex_bus_r[6:0];
+  assign HEX1 = hex_bus_r[14:8];
+  assign HEX2 = hex_bus_r[22:16];
+  assign HEX3 = hex_bus_r[30:24];
+
+  // 7seg l
+  assign HEX4 = hex_bus_l[6:0];
+  assign HEX5 = hex_bus_l[14:8];
+  assign HEX6 = hex_bus_l[22:16];
+  assign HEX7 = hex_bus_l[30:24];
 
   // leds
   assign LEDR = led_red_bus[17:0];
@@ -140,5 +165,14 @@ module pcihello (
 
   // push buttons
   assign push_buttons_bus[3:0] = KEY[3:0];
+
+  // ir receiver
+  assign ir_receiver_bus[0] = IRDA_RXD;
+
+  assign LCD_DATA = lcd_bus[7:0];
+  assign LCD_EN = lcd_bus[8];
+  assign LCD_ON = lcd_bus[9];
+  assign LCD_RS = lcd_bus[10];
+  assign LCD_RW = lcd_bus[11];
 
 endmodule

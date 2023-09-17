@@ -3,14 +3,17 @@
 import os, sys
 from fcntl import ioctl
 from time import sleep
+from ioctl_opt import IO
 
 # ioctl commands defined at the pci driver
-RD_SWITCHES   = 24929
-RD_PBUTTONS   = 24930
-WR_L_DISPLAY  = 24931
-WR_R_DISPLAY  = 24932
-WR_RED_LEDS   = 24933
-WR_GREEN_LEDS = 24934
+RD_SWITCHES   = IO(ord('a'), ord('a'))
+RD_PBUTTONS   = IO(ord('a'), ord('b'))
+WR_L_DISPLAY  = IO(ord('a'), ord('c'))
+WR_R_DISPLAY  = IO(ord('a'), ord('d'))
+WR_RED_LEDS   = IO(ord('a'), ord('e'))
+WR_GREEN_LEDS = IO(ord('a'), ord('f'))
+RD_IR         = IO(ord('a'), ord('g'))
+WR_LCD        = IO(ord('a'), ord('h'))
 
 def main():
     if len(sys.argv) < 2:
@@ -43,24 +46,27 @@ def main():
 
         sleep(1)
 
+        for i in range(10000):
+
+
         print("botao")
 
-        while True:
-            b = le_botao(fd)
-            sw = le_switch(fd)
-            liga_led(fd, b, WR_GREEN_LEDS)
-            liga_led(fd, sw, WR_RED_LEDS)
-            liga_led(fd, sw, WR_R_DISPLAY)
-            liga_led(fd, sw, WR_L_DISPLAY)
-            if b == 0b0101:
-                break
+        # while True:
+        #     b = le_botao(fd)
+        #     sw = le_switch(fd)
+        #     liga_led(fd, b, WR_GREEN_LEDS)
+        #     liga_led(fd, sw, WR_RED_LEDS)
+        #     liga_led(fd, sw, WR_R_DISPLAY)
+        #     liga_led(fd, sw, WR_L_DISPLAY)
+        #     if b == 0b0101:
+        #         break
 
     except OSError as e:
         print(f"Error opening or accessing {fd}: {e}")
-        # sys.exit(1)
+        sys.exit(1)
 
     os.close(fd)
-    # sys.exit(0)
+    sys.exit(0)
 
 def bitwise_left_shift_wraparound(number, shift, bits):
     # Ensure that shift is within the range of bits
@@ -99,6 +105,11 @@ def liga_led(fd, leds, cor):
     ioctl(fd, cor)
     retval = os.write(fd, leds.to_bytes(4, 'little'))
     print(f"led ({cor}) [{retval}]: ({leds:018b})")
+
+def liga_lcd(fd, leds):
+    ioctl(fd, WR_LCD)
+    retval = os.write(fd, leds.to_bytes(4, 'little'))
+    print(f"lcd [{retval}]: ({leds:012b})")
 
 if __name__ == '__main__':
     main()

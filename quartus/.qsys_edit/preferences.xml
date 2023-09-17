@@ -8,6 +8,7 @@
    <export preferredWidth="416" />
   </columns>
  </systemtable>
- <library expandedCategories="Library,Project" />
- <window width="1920" height="1032" x="0" y="0" />
+ <library
+   expandedCategories="Library,Library/Interface Protocols/PCI Express/QSYS Example Designs,Library/Processors and Peripherals,Library/Processors and Peripherals/Peripherals,Library/Interface Protocols,Library/Interface Protocols/PCI Express" />
+ <window width="3140" height="1785" x="0" y="0" />
 </preferences>

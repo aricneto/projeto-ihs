@@ -13,7 +13,7 @@
    {
       datum _sortIndex
       {
-         value = "7";
+         value = "6";
          type = "int";
       }
    }
@@ -21,35 +21,11 @@
    {
       datum _sortIndex
       {
-         value = "6";
+         value = "5";
          type = "int";
       }
    }
-   element hex_display
-   {
-      datum _sortIndex
-      {
-         value = "0";
-         type = "int";
-      }
-   }
-   element hex_display.s1
-   {
-      datum baseAddress
-      {
-         value = "49152";
-         type = "String";
-      }
-   }
-   element hex_display_2
-   {
-      datum _sortIndex
-      {
-         value = "2";
-         type = "int";
-      }
-   }
-   element inport
+   element hex_display_l
    {
       datum _sortIndex
       {
@@ -57,19 +33,43 @@
          type = "int";
       }
    }
-   element inport.s1
+   element hex_display_r
+   {
+      datum _sortIndex
+      {
+         value = "0";
+         type = "int";
+      }
+   }
+   element hex_display_r.s1
    {
       datum baseAddress
       {
-         value = "49184";
+         value = "49152";
          type = "String";
+      }
+   }
+   element ir_receiver
+   {
+      datum _sortIndex
+      {
+         value = "7";
+         type = "int";
+      }
+   }
+   element lcd
+   {
+      datum _sortIndex
+      {
+         value = "8";
+         type = "int";
       }
    }
    element pcie_hard_ip_0
    {
       datum _sortIndex
       {
-         value = "8";
+         value = "9";
          type = "int";
       }
    }
@@ -93,7 +93,7 @@
    {
       datum _sortIndex
       {
-         value = "4";
+         value = "3";
          type = "int";
       }
    }
@@ -101,7 +101,7 @@
    {
       datum _sortIndex
       {
-         value = "5";
+         value = "4";
          type = "int";
       }
    }
@@ -109,7 +109,7 @@
    {
       datum _sortIndex
       {
-         value = "3";
+         value = "2";
          type = "int";
       }
    }
@@ -145,18 +145,23 @@
    type="conduit"
    dir="end" />
  <interface
-   name="hex_display_2_external_connection"
-   internal="hex_display_2.external_connection"
+   name="hex_display_l_external_connection"
+   internal="hex_display_l.external_connection"
    type="conduit"
    dir="end" />
  <interface
-   name="hex_display_external_connection"
-   internal="hex_display.external_connection"
+   name="hex_display_r_external_connection"
+   internal="hex_display_r.external_connection"
    type="conduit"
    dir="end" />
  <interface
-   name="inport_external_connection"
-   internal="inport.external_connection"
+   name="ir_receiver_external_connection"
+   internal="ir_receiver.external_connection"
+   type="conduit"
+   dir="end" />
+ <interface
+   name="lcd_external_connection"
+   internal="lcd.external_connection"
    type="conduit"
    dir="end" />
  <interface
@@ -232,7 +237,25 @@
   <parameter name="width" value="32" />
  </module>
  <module
-   name="hex_display"
+   name="hex_display_l"
+   kind="altera_avalon_pio"
+   version="17.1"
+   enabled="1">
+  <parameter name="bitClearingEdgeCapReg" value="false" />
+  <parameter name="bitModifyingOutReg" value="false" />
+  <parameter name="captureEdge" value="false" />
+  <parameter name="clockRate" value="125000000" />
+  <parameter name="direction" value="Output" />
+  <parameter name="edgeType" value="RISING" />
+  <parameter name="generateIRQ" value="false" />
+  <parameter name="irqType" value="LEVEL" />
+  <parameter name="resetValue" value="1077952576" />
+  <parameter name="simDoTestBenchWiring" value="false" />
+  <parameter name="simDrivenValue" value="0" />
+  <parameter name="width" value="32" />
+ </module>
+ <module
+   name="hex_display_r"
    kind="altera_avalon_pio"
    version="17.1"
    enabled="1">
@@ -250,7 +273,7 @@
   <parameter name="width" value="32" />
  </module>
  <module
-   name="hex_display_2"
+   name="ir_receiver"
    kind="altera_avalon_pio"
    version="17.1"
    enabled="1">
@@ -258,21 +281,21 @@
   <parameter name="bitModifyingOutReg" value="false" />
   <parameter name="captureEdge" value="false" />
   <parameter name="clockRate" value="125000000" />
-  <parameter name="direction" value="Output" />
+  <parameter name="direction" value="Input" />
   <parameter name="edgeType" value="RISING" />
   <parameter name="generateIRQ" value="false" />
   <parameter name="irqType" value="LEVEL" />
-  <parameter name="resetValue" value="1077952576" />
+  <parameter name="resetValue" value="0" />
   <parameter name="simDoTestBenchWiring" value="false" />
   <parameter name="simDrivenValue" value="0" />
   <parameter name="width" value="32" />
  </module>
- <module name="inport" kind="altera_avalon_pio" version="17.1" enabled="1">
+ <module name="lcd" kind="altera_avalon_pio" version="17.1" enabled="1">
   <parameter name="bitClearingEdgeCapReg" value="false" />
   <parameter name="bitModifyingOutReg" value="false" />
   <parameter name="captureEdge" value="false" />
   <parameter name="clockRate" value="125000000" />
-  <parameter name="direction" value="Input" />
+  <parameter name="direction" value="Output" />
   <parameter name="edgeType" value="RISING" />
   <parameter name="generateIRQ" value="false" />
   <parameter name="irqType" value="LEVEL" />
@@ -465,16 +488,7 @@
    kind="avalon"
    version="17.1"
    start="pcie_hard_ip_0.bar0"
-   end="inport.s1">
-  <parameter name="arbitrationPriority" value="1" />
-  <parameter name="baseAddress" value="0xf800" />
-  <parameter name="defaultConnection" value="false" />
- </connection>
- <connection
-   kind="avalon"
-   version="17.1"
-   start="pcie_hard_ip_0.bar0"
-   end="hex_display_2.s1">
+   end="hex_display_l.s1">
   <parameter name="arbitrationPriority" value="1" />
   <parameter name="baseAddress" value="0xf020" />
   <parameter name="defaultConnection" value="false" />
@@ -528,9 +542,23 @@
    kind="avalon"
    version="17.1"
    start="pcie_hard_ip_0.bar0"
-   end="hex_display.s1">
+   end="hex_display_r.s1">
   <parameter name="arbitrationPriority" value="1" />
   <parameter name="baseAddress" value="0xfa00" />
+  <parameter name="defaultConnection" value="false" />
+ </connection>
+ <connection
+   kind="avalon"
+   version="17.1"
+   start="pcie_hard_ip_0.bar0"
+   end="ir_receiver.s1">
+  <parameter name="arbitrationPriority" value="1" />
+  <parameter name="baseAddress" value="0xfc00" />
+  <parameter name="defaultConnection" value="false" />
+ </connection>
+ <connection kind="avalon" version="17.1" start="pcie_hard_ip_0.bar0" end="lcd.s1">
+  <parameter name="arbitrationPriority" value="1" />
+  <parameter name="baseAddress" value="0xfd00" />
   <parameter name="defaultConnection" value="false" />
  </connection>
  <connection
@@ -551,17 +579,12 @@
    kind="clock"
    version="17.1"
    start="pcie_hard_ip_0.pcie_core_clk"
-   end="inport.clk" />
+   end="hex_display_r.clk" />
  <connection
    kind="clock"
    version="17.1"
    start="pcie_hard_ip_0.pcie_core_clk"
-   end="hex_display.clk" />
- <connection
-   kind="clock"
-   version="17.1"
-   start="pcie_hard_ip_0.pcie_core_clk"
-   end="hex_display_2.clk" />
+   end="hex_display_l.clk" />
  <connection
    kind="clock"
    version="17.1"
@@ -591,6 +614,16 @@
    kind="clock"
    version="17.1"
    start="pcie_hard_ip_0.pcie_core_clk"
+   end="ir_receiver.clk" />
+ <connection
+   kind="clock"
+   version="17.1"
+   start="pcie_hard_ip_0.pcie_core_clk"
+   end="lcd.clk" />
+ <connection
+   kind="clock"
+   version="17.1"
+   start="pcie_hard_ip_0.pcie_core_clk"
    end="pcie_hard_ip_0.fixedclk" />
  <connection
    kind="clock"
@@ -601,17 +634,12 @@
    kind="reset"
    version="17.1"
    start="pcie_hard_ip_0.pcie_core_reset"
-   end="inport.reset" />
+   end="hex_display_r.reset" />
  <connection
    kind="reset"
    version="17.1"
    start="pcie_hard_ip_0.pcie_core_reset"
-   end="hex_display.reset" />
- <connection
-   kind="reset"
-   version="17.1"
-   start="pcie_hard_ip_0.pcie_core_reset"
-   end="hex_display_2.reset" />
+   end="hex_display_l.reset" />
  <connection
    kind="reset"
    version="17.1"
@@ -637,6 +665,16 @@
    version="17.1"
    start="pcie_hard_ip_0.pcie_core_reset"
    end="fan_control.reset" />
+ <connection
+   kind="reset"
+   version="17.1"
+   start="pcie_hard_ip_0.pcie_core_reset"
+   end="ir_receiver.reset" />
+ <connection
+   kind="reset"
+   version="17.1"
+   start="pcie_hard_ip_0.pcie_core_reset"
+   end="lcd.reset" />
  <interconnectRequirement for="$system" name="qsys_mm.clockCrossingAdapter" value="HANDSHAKE" />
  <interconnectRequirement for="$system" name="qsys_mm.maxAdditionalLatency" value="1" />
 </system>

@@ -85,11 +85,11 @@ static void __iomem* bar0_mmio = NULL;
 static void __iomem* read_pointer  = NULL;
 static void __iomem* write_pointer = NULL;
 
-/* Buffers usados para o kernel */
+/* buffers usados para o kernel */
 #define mem_size 1024
 
-uint8_t *kernel_buffer_read;
-uint8_t *kernel_buffer_write;
+uint32_t *kernel_buffer_read = NULL;
+uint32_t *kernel_buffer_write = NULL;
 
 /* peripherals names for debugging in dmesg */
 static const char* peripheral[] = {
@@ -98,7 +98,9 @@ static const char* peripheral[] = {
     "display_l",
     "display_r",
     "green_leds",
-    "red_leds"
+    "red_leds",
+    "ir_receiver",
+    "lcd"
 };
 
 enum perf_names_idx {
@@ -107,7 +109,9 @@ enum perf_names_idx {
     IDX_DISPLAYL,
     IDX_DISPLAYR,
     IDX_GREENLED,
-    IDX_REDLED
+    IDX_REDLED,
+    IDX_IR,
+    IDX_LCD
 };
 static int wr_name_idx = IDX_DISPLAYR;
 static int rd_name_idx = IDX_SWITCH;
@@ -176,22 +180,43 @@ static void __exit my_exit(void)
 
 static int my_open(struct inode* inode, struct file* filp)
 {
-    /*Creating Physical memory*/
-    if((kernel_buffer_read = kmalloc(mem_size , GFP_KERNEL)) == 0 
-        || (kernel_buffer_write = kmalloc(mem_size , GFP_KERNEL)) == 0 ){
-        printk(KERN_INFO "my_driver: cannot allocate memory in kernel\n");
-        return -1;
+    /* check if buffers are already allocated */
+    if (kernel_buffer_read != NULL || kernel_buffer_write != NULL) {
+        printk(KERN_INFO "my_driver: buffers are already allocated\n");
+        return -EBUSY;
     }
+
+    /* allocate kernel memory for buffers */
+    kernel_buffer_read = kmalloc(mem_size, GFP_KERNEL);
+    kernel_buffer_write = kmalloc(mem_size, GFP_KERNEL);
+
+    /*Creating Physical memory*/
+    if(!kernel_buffer_read || !kernel_buffer_write){
+        printk(KERN_INFO "my_driver: cannot allocate memory in kernel\n");
+        return -ENOMEM;
+    }
+
     printk(KERN_INFO "my_driver: open was called\n");
     return 0;
 }
 
 static int my_close(struct inode* inode, struct file* filp)
 {
-    // Liberando espaço do buffer
-    kfree(kernel_buffer_read);
-    kfree(kernel_buffer_write);
-    printk("my_driver: close was called\n");
+    printk(KERN_INFO "my_driver: close was called\n");
+
+    /* check if the buffers are allocated before freeing them */
+    if (kernel_buffer_read) {
+        kfree(kernel_buffer_read);
+        kernel_buffer_read = NULL;
+        printk(KERN_INFO "my_driver: deallocated read buffer\n");
+    }
+
+    if (kernel_buffer_write) {
+        kfree(kernel_buffer_write);
+        kernel_buffer_write = NULL;
+        printk(KERN_INFO "my_driver: deallocated write buffer\n");
+    }
+
     return 0;
 }
 
@@ -201,20 +226,24 @@ static ssize_t my_read(struct file* filp, char __user* buf, size_t count, loff_t
     int to_cpy = 0;
 
     /* check if the read_pointer pointer is set */
-    if (read_pointer == NULL) {
+    if (read_pointer == NULL || kernel_buffer_read == NULL) {
         printk("my_driver: trying to read to a device region not set yet\n");
         return -ECANCELED;
     }
 
     /* read from the device */
     kernel_buffer_read = ioread32(read_pointer);
-    printk("my_driver: red 0x%X from the %s\n", kernel_buffer_read, peripheral[rd_name_idx]);
+    printk("my_driver: red 0x%X from the %s\n", *kernel_buffer_read, peripheral[rd_name_idx]);
 
     /* get amount of bytes to copy to user */
     to_cpy = (count <= sizeof(kernel_buffer_read)) ? count : sizeof(kernel_buffer_read);
 
     /* copy data to user */
     retval = to_cpy - copy_to_user(buf, &kernel_buffer_read, to_cpy);
+    if (retval == NULL) {
+        printk(KERN_ERR "my_driver: failed to copy data to user space\n");
+        return -EFAULT;
+    }   
 
     return retval;
 }
@@ -225,16 +254,26 @@ static ssize_t my_write(struct file* filp, const char __user* buf, size_t count,
     int to_cpy = 0;
 
     /* check if the write_pointer pointer is set */
-    if (write_pointer == NULL) {
+    if (write_pointer == NULL || kernel_buffer_write == NULL) {
         printk("my_driver: trying to write to a device region not set yet\n");
         return -ECANCELED;
+    }
+
+    /* check if the input data size is too large */
+    if (count > sizeof(uint32_t)) {
+        printk(KERN_ERR "my_driver: data is too large\n");
+        return -EINVAL;
     }
 
     /* get amount of bytes to copy from user */
     to_cpy = (count <= sizeof(kernel_buffer_write)) ? count : sizeof(kernel_buffer_write);
 
-    /* copy data from user */
+    /* copy data from user space to kernel space */
     retval = to_cpy - copy_from_user(&kernel_buffer_write, buf, to_cpy);
+    if (retval == NULL) {
+        printk(KERN_ERR "my_driver: failed to copy data from user space\n");
+        return -EFAULT;
+    }    
 
     /* send to device */
     iowrite32(kernel_buffer_write, write_pointer);
@@ -269,6 +308,14 @@ static long int my_ioctl(struct file*, unsigned int cmd, unsigned long arg)
     case WR_GREEN_LEDS:
         write_pointer = bar0_mmio + 0xF060;
         wr_name_idx = IDX_GREENLED;
+        break;
+    case WR_LCD:
+        write_pointer = bar0_mmio + 0xFD00;
+        wr_name_idx = IDX_LCD;
+        break;
+    case RD_IR:
+        write_pointer = bar0_mmio + 0xFC00;
+        wr_name_idx = IDX_LCD;
         break;
     default:
         printk("my_driver: unknown ioctl command: 0x%X\n", cmd);
