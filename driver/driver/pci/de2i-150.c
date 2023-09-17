@@ -181,10 +181,10 @@ static void __exit my_exit(void)
 static int my_open(struct inode* inode, struct file* filp)
 {
     /* check if buffers are already allocated */
-    if (kernel_buffer_read != NULL || kernel_buffer_write != NULL) {
-        printk(KERN_INFO "my_driver: buffers are already allocated\n");
-        return -EBUSY;
-    }
+    // if (kernel_buffer_read != NULL || kernel_buffer_write != NULL) {
+    //     printk(KERN_INFO "my_driver: buffers are already allocated\n");
+    //     return -EBUSY;
+    // }
 
     /* allocate kernel memory for buffers */
     kernel_buffer_read = kmalloc(mem_size, GFP_KERNEL);
@@ -207,13 +207,11 @@ static int my_close(struct inode* inode, struct file* filp)
     /* check if the buffers are allocated before freeing them */
     if (kernel_buffer_read) {
         kfree(kernel_buffer_read);
-        kernel_buffer_read = NULL;
         printk(KERN_INFO "my_driver: deallocated read buffer\n");
     }
 
     if (kernel_buffer_write) {
         kfree(kernel_buffer_write);
-        kernel_buffer_write = NULL;
         printk(KERN_INFO "my_driver: deallocated write buffer\n");
     }
 
@@ -226,21 +224,21 @@ static ssize_t my_read(struct file* filp, char __user* buf, size_t count, loff_t
     int to_cpy = 0;
 
     /* check if the read_pointer pointer is set */
-    if (read_pointer == NULL || kernel_buffer_read == NULL) {
+    if (read_pointer == NULL) {
         printk("my_driver: trying to read to a device region not set yet\n");
         return -ECANCELED;
     }
 
     /* read from the device */
     kernel_buffer_read = ioread32(read_pointer);
-    printk("my_driver: red 0x%X from the %s\n", *kernel_buffer_read, peripheral[rd_name_idx]);
+    printk("my_driver: red 0x%X from the %s\n", kernel_buffer_read, peripheral[rd_name_idx]);
 
     /* get amount of bytes to copy to user */
     to_cpy = (count <= sizeof(kernel_buffer_read)) ? count : sizeof(kernel_buffer_read);
 
     /* copy data to user */
     retval = to_cpy - copy_to_user(buf, &kernel_buffer_read, to_cpy);
-    if (retval == NULL) {
+    if (!retval) {
         printk(KERN_ERR "my_driver: failed to copy data to user space\n");
         return -EFAULT;
     }   
@@ -254,7 +252,7 @@ static ssize_t my_write(struct file* filp, const char __user* buf, size_t count,
     int to_cpy = 0;
 
     /* check if the write_pointer pointer is set */
-    if (write_pointer == NULL || kernel_buffer_write == NULL) {
+    if (write_pointer == NULL) {
         printk("my_driver: trying to write to a device region not set yet\n");
         return -ECANCELED;
     }
@@ -270,7 +268,7 @@ static ssize_t my_write(struct file* filp, const char __user* buf, size_t count,
 
     /* copy data from user space to kernel space */
     retval = to_cpy - copy_from_user(&kernel_buffer_write, buf, to_cpy);
-    if (retval == NULL) {
+    if (!retval) {
         printk(KERN_ERR "my_driver: failed to copy data from user space\n");
         return -EFAULT;
     }    
@@ -315,7 +313,7 @@ static long int my_ioctl(struct file*, unsigned int cmd, unsigned long arg)
         break;
     case RD_IR:
         write_pointer = bar0_mmio + 0xFC00;
-        wr_name_idx = IDX_LCD;
+        wr_name_idx = IDX_IR;
         break;
     default:
         printk("my_driver: unknown ioctl command: 0x%X\n", cmd);
