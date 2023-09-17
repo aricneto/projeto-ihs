@@ -203,15 +203,15 @@ static int my_open(struct inode* inode, struct file* filp)
 static int my_close(struct inode* inode, struct file* filp)
 {
     printk(KERN_INFO "my_driver: close was called\n");
+    kfree(kernel_buffer_read);
+    kfree(kernel_buffer_write);
 
     /* check if the buffers are allocated before freeing them */
-    if (kernel_buffer_read) {
-        kfree(kernel_buffer_read);
+    if (!kernel_buffer_read) {
         printk(KERN_INFO "my_driver: deallocated read buffer\n");
     }
 
-    if (kernel_buffer_write) {
-        kfree(kernel_buffer_write);
+    if (!kernel_buffer_write) {
         printk(KERN_INFO "my_driver: deallocated write buffer\n");
     }
 

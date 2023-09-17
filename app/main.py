@@ -15,6 +15,34 @@ WR_GREEN_LEDS = IO(ord('a'), ord('f'))
 RD_IR         = IO(ord('a'), ord('g'))
 WR_LCD        = IO(ord('a'), ord('h'))
 
+seg7_1 = 0b1111_1001
+seg7_2 = 0b1010_0100
+seg7_3 = 0b1011_0000
+seg7_4 = 0b1001_1001
+seg7_5 = 0b1001_0010
+seg7_6 = 0b1000_0010
+seg7_7 = 0b1111_1000
+seg7_8 = 0b1000_0000
+seg7_9 = 0b1001_0000
+
+def test():
+    if len(sys.argv) < 2:
+        print("Error: expected more command line arguments")
+        print("Syntax: %s </dev/device_file>"%sys.argv[0])
+        exit(1)
+
+    fd = os.open(sys.argv[1], os.O_RDWR)
+
+    print("loading")
+    sleep(3)
+    print("loaded\n\n")
+
+    for i in range(2):
+        liga_led(fd, (seg7_1 << 24) + (seg7_2 << 16) + (seg7_3 << 8) + (seg7_4), WR_L_DISPLAY)
+        liga_led(fd, (seg7_5 << 24) + (seg7_6 << 16) + (seg7_7 << 8) + (seg7_8), WR_R_DISPLAY)
+
+    os.close(fd)
+
 def main():
     if len(sys.argv) < 2:
         print("Error: expected more command line arguments")
@@ -46,27 +74,24 @@ def main():
 
         sleep(1)
 
-        for i in range(10000):
-
-
         print("botao")
 
-        # while True:
-        #     b = le_botao(fd)
-        #     sw = le_switch(fd)
-        #     liga_led(fd, b, WR_GREEN_LEDS)
-        #     liga_led(fd, sw, WR_RED_LEDS)
-        #     liga_led(fd, sw, WR_R_DISPLAY)
-        #     liga_led(fd, sw, WR_L_DISPLAY)
-        #     if b == 0b0101:
-        #         break
+        while True:
+            b = le_botao(fd)
+            sw = le_switch(fd)
+            liga_led(fd, b, WR_GREEN_LEDS)
+            liga_led(fd, sw, WR_RED_LEDS)
+            liga_led(fd, sw, WR_R_DISPLAY)
+            liga_led(fd, sw, WR_L_DISPLAY)
+            if b == 0b0101:
+                break
 
     except OSError as e:
         print(f"Error opening or accessing {fd}: {e}")
-        sys.exit(1)
+        # sys.exit(1)
 
     os.close(fd)
-    sys.exit(0)
+    # sys.exit(0)
 
 def bitwise_left_shift_wraparound(number, shift, bits):
     # Ensure that shift is within the range of bits
@@ -84,7 +109,6 @@ def le_switch(fd):
     sleep(0.1)
     ioctl(fd, RD_SWITCHES)
     red = os.read(fd, 4); # read 4 bytes and store in red var
-    red = os.read(fd, 4); # read 4 bytes and store in red var
     n = int.from_bytes(red, 'little')
     print(f"switch {n:016b}")
     return n
@@ -93,9 +117,16 @@ def le_botao(fd):
     sleep(0.1)
     ioctl(fd, RD_PBUTTONS)
     red = os.read(fd, 4); # read 4 bytes and store in red var
-    red = os.read(fd, 4); # read 4 bytes and store in red var
     n = int.from_bytes(red, 'little')
     print(f"buttons {n:04b}")
+    return n
+
+def le_ir(fd):
+    sleep(0.1)
+    ioctl(fd, RD_IR)
+    red = os.read(fd, 4); # read 4 bytes and store in red var
+    n = int.from_bytes(red, 'little')
+    print(f"ir {n:08b}")
     return n
 
 def liga_led(fd, leds, cor):
@@ -112,4 +143,4 @@ def liga_lcd(fd, leds):
     print(f"lcd [{retval}]: ({leds:012b})")
 
 if __name__ == '__main__':
-    main()
+    test()
