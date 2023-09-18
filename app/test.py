@@ -16,7 +16,8 @@ cur_map = [
 red_leds = 13
 
 MAP_H, MAP_W = len(cur_map), len(cur_map[0])
-DASH_H = 3
+DASH_H = 4
+SWITCH_H = 4
 NUM_RED_LEDS = 18
 
 
@@ -40,17 +41,19 @@ def window(stdscr: "curses._CursesWindow"):
 
     # init colors
     curses.init_pair(1, curses.COLOR_BLUE, curses.COLOR_BLACK)
-    curses.init_pair(2, curses.COLOR_RED, curses.COLOR_BLUE)
+    curses.init_pair(2, curses.COLOR_BLUE, curses.COLOR_BLACK)
     curses.init_pair(3, curses.COLOR_GREEN, curses.COLOR_BLACK)
     curses.init_pair(4, curses.COLOR_WHITE, curses.COLOR_GREEN)
     curses.init_pair(5, curses.COLOR_WHITE, curses.COLOR_RED)
     curses.init_pair(6, curses.COLOR_WHITE, curses.COLOR_BLACK)
+    curses.init_pair(7, curses.COLOR_RED, curses.COLOR_WHITE)
 
     win1 = curses.newwin(MAP_H + 2, MAP_W + 2, 0, 0)
     dash_win = curses.newwin(DASH_H, MAP_W + 2, MAP_H + 2, 0)
 
     pad1 = curses.newpad(MAP_H, MAP_W + 1)
     dash_pad = curses.newpad(DASH_H, MAP_W + 1)
+    switch_pad = curses.newpad(DASH_H, MAP_W + 1)
 
     win1.attron(curses.color_pair(1))
     win1.bkgd("'", curses.color_pair(1))
@@ -61,6 +64,7 @@ def window(stdscr: "curses._CursesWindow"):
     dash_win.bkgd("'", curses.color_pair(1))
     dash_win.border()
     dash_win.refresh()
+
 
     # entities.append(Entity(50,6, "#", 3))
     # entities.append(Entity(60,9, "#", 3))
@@ -84,6 +88,9 @@ def window(stdscr: "curses._CursesWindow"):
         draw_leds(dash_pad, lights, 18, 0, 5)
         draw_leds(dash_pad, lights, 8, 45, 4)
 
+        draw_leds(switch_pad, lights + 1, 4, 49, 7, "_", "|")
+        draw_leds(switch_pad, lights + 1, 18, 0, 7, "_", "|")
+
         lights += 1
 
         match stdscr.getch():
@@ -101,10 +108,11 @@ def window(stdscr: "curses._CursesWindow"):
         # draw player
         add_entity(pad1, player)
         pad1.refresh(0, 0, 1, 1, MAP_H, MAP_W)
-        dash_pad.refresh(0, 0, MAP_H + 3, 1, MAP_H + DASH_H, MAP_W)
+        dash_pad.refresh(0, 0, MAP_H + 3, 1, MAP_H + DASH_H - 1, MAP_W)
+        switch_pad.refresh(0, 0, MAP_H + 4, 1, MAP_H + DASH_H, MAP_W)
 
         # wait for next frame
-        # sleep(1./10)
+        sleep(.1)
 
     # end curses
     curses.nocbreak()
@@ -126,8 +134,8 @@ def chase_entity(chaser, chased):
     elif dir_y > 0:
         move_char(0, -1, chaser)
 
-def add_entity(pad: 'curses._CursesWindow', entity):
-    pad.addch(entity.y, entity.x, entity.rep, curses.color_pair(entity.color))
+def add_entity(pad: 'curses._CursesWindow', entity: 'Entity'):
+    pad.addch(entity.y, entity.x, entity.getChar(), curses.color_pair(entity.color) | curses.A_BOLD)
 
 def move_char(x, y, entity):
     current_y = entity.y
@@ -151,7 +159,7 @@ def move_char(x, y, entity):
         return True
 
 
-def draw_leds(pad, lights, total, offset, color):
+def draw_leds(pad, lights, total, offset, color, char_off=".", char_on="@"):
     """
     Draws an LED dashboard
     
@@ -165,9 +173,9 @@ def draw_leds(pad, lights, total, offset, color):
     for i, num in enumerate(to_bin_list(lights, total)):
         location = offset + i + 1
         if num == 0:
-            pad.addch(0, location + i, ".", curses.color_pair(6))
+            pad.addch(0, location + i, char_off, curses.color_pair(6))
         else:
-            pad.addch(0, location + i, "@", curses.color_pair(color))
+            pad.addch(0, location + i, char_on, curses.color_pair(color))
         pad.addch(0, location + i + 1, " ")
 
 def hitbox(x, y):
