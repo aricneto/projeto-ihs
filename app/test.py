@@ -186,6 +186,7 @@ def window(stdscr: "curses._CursesWindow"):
                 break
 
     # end curses
+    comms.close()
     curses.nocbreak()
     stdscr.nodelay(False)
     stdscr.keypad(False)
