@@ -1,8 +1,9 @@
 import curses
+from comms import Comms
 from entity import Entity
 from time import sleep, time
 from pathfinding import find_path
-from utils import BLOCKING_TILES, COIN_TILE, DOOR_TILE, NONE_TILE, WALL_TILE, to_bin_list, toggle_door
+from utils import BLOCKING_TILES, COIN_TILE, DOOR_TILE, NONE_TILE, WALL_TILE, close_door, open_door, to_bin_list, toggle_door
 from maps import map1
 
 red_leds = 13
@@ -16,12 +17,11 @@ NUM_RED_LEDS = 18
 
 player = Entity(25, 3, "@", 2)
 entities: 'list[Entity]' = []
-
+comms = Comms()
 
 def window(stdscr: "curses._CursesWindow"):
     # get window size
     HEIGHT, WIDTH = stdscr.getmaxyx()
-    print(f"map h: {MAP_H}, map w: {MAP_W}")
 
     # init curses
     curses.noecho()  # don't display inputs
@@ -116,33 +116,45 @@ def window(stdscr: "curses._CursesWindow"):
         if game_over:
             break
 
-        # draw dashboard
-        draw_leds(dash_pad, lights, 18, 0, 5)
-        draw_leds(dash_pad, lights, 8, 45, 4)
+        # read switches and buttons
+        switches = to_bin_list(comms.le_switch(), 18)
+        buttons = to_bin_list(comms.le_botao(), 4)
 
-        draw_leds(switch_pad, lights + 1, 4, 49, 7, "_", "|")
-        draw_leds(switch_pad, lights + 1, 18, 0, 7, "_", "|")
+        # draw dashboard
+        draw_leds(dash_pad, to_bin_list(lights, 18), 18, 0, 5)
+        draw_leds(dash_pad, to_bin_list(lights, 8), 8, 45, 4)
+
+        draw_leds(switch_pad, buttons, 4, 49, 7, "_", "|", negate=True)
+        draw_leds(switch_pad, switches, 18, 0, 7, "_", "|")
 
         lights += 1
 
-        match stdscr.getch():
-            case curses.KEY_DOWN:
+        # 4 push buttons act as directional keys (left, up, down, right)
+        match comms.le_botao():
+            case 0b1101:
                 move_char(0, 1, player, start_map)
-            case curses.KEY_UP:
+            case 0b1011:
                 move_char(0, -1, player, start_map)
-            case curses.KEY_LEFT:
+            case 0b0111:
                 move_char(-1, 0, player, start_map)
-            case curses.KEY_RIGHT:
+            case 0b1110:
                 move_char(1, 0, player, start_map)
-            case 27:  # ESC
+            case 0b1010:  # ESC
                 break
-            case other:
-                if other == ord("a"):
-                    start_map[4][10] = toggle_door(4, 10, start_map)
-                elif other == ord("s"):
-                    start_map[5][11] = toggle_door(5, 11, start_map)
-                elif other == ord("d"):
-                    start_map[6][12] = toggle_door(6, 12, start_map)
+            
+        # switches act as door toggles
+        if (switches[17] == 1):
+            close_door(4, 10, start_map)
+        else:
+            open_door(4, 10, start_map)
+        if (switches[16] == 1):
+            close_door(4, 35, start_map)
+        else:
+            open_door(4, 35, start_map)
+        if (switches[15] == 1):
+            close_door(6, 14, start_map)
+        else:
+            open_door(6, 14, start_map)
 
         # collect coin
         if start_map[player.y][player.x] == COIN_TILE:
@@ -188,7 +200,6 @@ def chase_entity(chaser, chased, map_data):
         if len(path) > 1:
             # move chaser towards the next point in the path
             next_x, next_y = path[1]
-            print (f"next_x = {next_x}, next_y = {next_y}")
 
             # calculate the direction to move
             dir_x = next_x - chaser.x
@@ -205,7 +216,6 @@ def add_entity(pad: 'curses._CursesWindow', entity: 'Entity'):
 def move_char(x, y, entity: 'Entity', map_data):
     current_y = entity.y
     current_x = entity.x
-    print(f"x: {current_x}, y: {current_y}, char: {entity.rep}")
     new_y = current_y + y
     new_x = current_x + x
 
@@ -224,7 +234,7 @@ def move_char(x, y, entity: 'Entity', map_data):
         return True
 
 
-def draw_leds(pad, lights, total, offset, color, char_off=".", char_on="@"):
+def draw_leds(pad, lights, total, offset, color, char_off=".", char_on="@", negate=False):
     """
     Draws an LED dashboard
     
@@ -233,9 +243,11 @@ def draw_leds(pad, lights, total, offset, color, char_off=".", char_on="@"):
     offset -- how much padding to the left
     color  -- curses color pair to represent led
     """
-    if 2 ** total - 1 < lights:
-        return False
-    for i, num in enumerate(to_bin_list(lights, total)):
+    # if total - 1 < len(lights):
+    #     return False
+    for i, num in enumerate(lights):
+        if negate:
+            num = not num
         location = offset + i + 1
         if num == 0:
             pad.addch(0, location + i, char_off, curses.color_pair(6))
