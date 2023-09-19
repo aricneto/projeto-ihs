@@ -14,6 +14,7 @@ class Comms():
     RD_IR         = IO(ord('a'), ord('g'))
     WR_LCD        = IO(ord('a'), ord('h'))
 
+    SEG7_0 = 0b1100_0000
     SEG7_1 = 0b1111_1001
     SEG7_2 = 0b1010_0100
     SEG7_3 = 0b1011_0000
@@ -23,6 +24,31 @@ class Comms():
     SEG7_7 = 0b1111_1000
     SEG7_8 = 0b1000_0000
     SEG7_9 = 0b1001_0000
+    SEG_NULL_3 = 0b1111_1111_1111_1111_1111_1111
+    SEG_NULL_2 = 0b1111_1111_1111_1111
+
+    SEG_LIST = [
+        SEG_NULL_3 << 8 + SEG7_0,
+        SEG_NULL_3 << 8 + SEG7_1,
+        SEG_NULL_3 << 8 + SEG7_2,
+        SEG_NULL_3 << 8 + SEG7_3,
+        SEG_NULL_3 << 8 + SEG7_4,
+        SEG_NULL_3 << 8 + SEG7_5,
+        SEG_NULL_3 << 8 + SEG7_6,
+        SEG_NULL_3 << 8 + SEG7_7,
+        SEG_NULL_3 << 8 + SEG7_8,
+        SEG_NULL_3 << 8 + SEG7_9,
+        SEG_NULL_2 << 8 + SEG7_1 << 8 + SEG7_0,
+        SEG_NULL_2 << 8 + SEG7_1 << 8 + SEG7_1,
+        SEG_NULL_2 << 8 + SEG7_1 << 8 + SEG7_2,
+        SEG_NULL_2 << 8 + SEG7_1 << 8 + SEG7_3,
+        SEG_NULL_2 << 8 + SEG7_1 << 8 + SEG7_4,
+        SEG_NULL_2 << 8 + SEG7_1 << 8 + SEG7_5,
+        SEG_NULL_2 << 8 + SEG7_1 << 8 + SEG7_6,
+        SEG_NULL_2 << 8 + SEG7_1 << 8 + SEG7_7,
+        SEG_NULL_2 << 8 + SEG7_1 << 8 + SEG7_8,
+        SEG_NULL_2 << 8 + SEG7_1 << 8 + SEG7_9,
+    ]
 
     RED = WR_RED_LEDS
     GREEN = WR_GREEN_LEDS

@@ -32,6 +32,14 @@ def window(stdscr: "curses._CursesWindow"):
     stdscr.clear()
     stdscr.refresh()
 
+    # clear 7seg displays
+    comms.liga_display(0xFFFFFFFF, Comms.L_DISPLAY)
+    comms.liga_display(0xFFFFFFFF, Comms.L_DISPLAY)
+    comms.liga_display(0xFFFFFFFF, Comms.R_DISPLAY)
+    comms.liga_display(0xFFFFFFFF, Comms.R_DISPLAY)
+    # delay so it doesn't crash
+    sleep(2)
+
     # init colors
     curses.init_pair(1, curses.COLOR_BLUE, curses.COLOR_BLACK)   # bg
     curses.init_pair(2, curses.COLOR_YELLOW, curses.COLOR_BLACK) # char
@@ -65,6 +73,7 @@ def window(stdscr: "curses._CursesWindow"):
 
     lights = 0
     coins = 0
+    new_coins = 0
     max_coins = 18
     last_entity_update_time = time()
     start_map = [list(row) for row in map1]
@@ -78,7 +87,6 @@ def window(stdscr: "curses._CursesWindow"):
         switch_pad.clear()
         win1.addstr(0, 3, f"|coins:_{coins}|")
         win1.refresh()
-
 
         # draw map
         for i, line in enumerate(start_map):
@@ -115,6 +123,14 @@ def window(stdscr: "curses._CursesWindow"):
         
         if game_over:
             break
+
+        # check if coins counter needs to update
+        if (coins > new_coins):
+            new_coins = coins
+            sleep(1)
+            comms.liga_display(Comms.SEG_LIST[coins%9], Comms.R_DISPLAY)
+            comms.liga_display(Comms.SEG_LIST[coins%9], Comms.R_DISPLAY)
+            sleep(1)
 
         # read switches and buttons
         switches = to_bin_list(comms.le_switch(), 18)
@@ -186,6 +202,7 @@ def window(stdscr: "curses._CursesWindow"):
                 break
 
     # end curses
+    comms.close()
     curses.nocbreak()
     stdscr.nodelay(False)
     stdscr.keypad(False)
@@ -243,8 +260,8 @@ def draw_leds(pad, lights, total, offset, color, char_off=".", char_on="@", nega
     offset -- how much padding to the left
     color  -- curses color pair to represent led
     """
-    # if total - 1 < len(lights):
-    #     return False
+    if total < len(lights):
+        return False
     for i, num in enumerate(lights):
         if negate:
             num = not num
