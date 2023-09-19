@@ -2,7 +2,7 @@ import curses
 from entity import Entity
 from time import sleep, time
 from pathfinding import find_path
-from utils import BLOCKING_TILES, DOOR_TILE, WALL_TILE, to_bin_list
+from utils import BLOCKING_TILES, DOOR_TILE, WALL_TILE, to_bin_list, toggle_door
 from maps import map1
 
 red_leds = 13
@@ -128,11 +128,11 @@ def window(stdscr: "curses._CursesWindow"):
                 break
             case other:
                 if other == ord("a"):
-                    start_map[4][10] = DOOR_TILE
+                    start_map[4][10] = toggle_door(4, 10, start_map)
                 elif other == ord("s"):
-                    start_map[5][11] = DOOR_TILE
+                    start_map[5][11] = toggle_door(5, 11, start_map)
                 elif other == ord("d"):
-                    start_map[6][12] = DOOR_TILE
+                    start_map[6][12] = toggle_door(6, 12, start_map)
         
         # draw player
         add_entity(pad1, player)
