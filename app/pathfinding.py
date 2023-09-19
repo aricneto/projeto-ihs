@@ -1,4 +1,6 @@
 import heapq
+
+from utils import BLOCKING_TILES, DOOR_TILE, WALL_TILE
 # A* adapted from: https://saturncloud.io/blog/implementing-the-a-algorithm-in-python-a-stepbystep-guide/
 
 class Node:
@@ -46,7 +48,7 @@ def find_path(start_x, start_y, goal_x, goal_y, map_data):
             if (
                 0 <= new_x < len(map_data[0]) # check if inside map
                 and 0 <= new_y < len(map_data)
-                and map_data[new_y][new_x] != "#" # check if wall
+                and map_data[new_y][new_x] not in BLOCKING_TILES # check if wall
                 and (new_x, new_y) not in closed_set
             ):
                 new_node = Node(new_x, new_y, current_node)
