@@ -1,26 +1,18 @@
 import curses
 from entity import Entity
-from time import sleep
+from time import sleep, time
+from pathfinding import find_path
 from utils import to_bin_list
-
-cur_map = [
-    "                                                                ",
-    "          3                          3                          ",
-    "          3                          3           3              ",
-    "          3                          3           3              ",
-    "          3333333333333333333333333333                          ",
-    "                                                        1       ",
-    "                                                                ",
-]
+from maps import map1
 
 red_leds = 13
 
-MAP_H, MAP_W = len(cur_map), len(cur_map[0])
+MAP_H, MAP_W = len(map1), len(map1[0])
 DASH_H = 3
 NUM_RED_LEDS = 18
 
 
-player = Entity(3, 3, "@", 2)
+player = Entity(25, 3, "@", 2)
 entities: 'list[Entity]' = []
 
 
@@ -62,23 +54,32 @@ def window(stdscr: "curses._CursesWindow"):
     dash_win.border()
     dash_win.refresh()
 
-    # entities.append(Entity(50,6, "#", 3))
+    entities.append(Entity(4, 6, "&", 3))
     # entities.append(Entity(60,9, "#", 3))
 
     lights = 0
+    last_entity_update_time = time()
 
     while True:
         pad1.clear()
         dash_pad.clear()
 
         # draw map
-        for i, line in enumerate(cur_map):
+        for i, line in enumerate(map1):
             pad1.addstr(i, 0, line)
 
-        # draw entities
+        # time since last entity update
+        current_time = time()
+        elapsed_time = current_time - last_entity_update_time
+        
         for entity in entities:
-            chase_entity(entity, player)
+            # update entity every 0.5 seconds
+            if elapsed_time >= 0.5:
+                chase_entity(entity, player, map1)
+                # save last update
+                last_entity_update_time = current_time
             add_entity(pad1, entity)
+            
 
         # draw dashboard
         draw_leds(dash_pad, lights, 18, 0, 5)
@@ -104,7 +105,7 @@ def window(stdscr: "curses._CursesWindow"):
         dash_pad.refresh(0, 0, MAP_H + 3, 1, MAP_H + DASH_H, MAP_W)
 
         # wait for next frame
-        # sleep(1./10)
+        sleep(1./10)
 
     # end curses
     curses.nocbreak()
@@ -112,27 +113,32 @@ def window(stdscr: "curses._CursesWindow"):
     curses.echo()
     curses.endwin()
 
-def chase_entity(chaser, chased):
-    dir_x = chaser.x - chased.x
-    dir_y = chaser.y - chased.y
-    
-    if dir_x < 0:
-        move_char(1, 0, chaser)
-    elif dir_x > 0:
-        move_char(-1, 0, chaser)
+def chase_entity(chaser, chased, map_data):
+    # use A* pathfinding to find a path from chaser's current position to the target's position
+    path = find_path(chaser.x, chaser.y, chased.x, chased.y, map_data)
 
-    if dir_y < 0:
-        move_char(0, 1, chaser)
-    elif dir_y > 0:
-        move_char(0, -1, chaser)
+    if path:
+        if len(path) > 1:
+            # move chaser towards the next point in the path
+            next_x, next_y = path[1]
+            print (f"next_x = {next_x}, next_y = {next_y}")
+
+            # calculate the direction to move
+            dir_x = next_x - chaser.x
+            dir_y = next_y - chaser.y
+
+            # move chaser
+            move_char(dir_x, dir_y, chaser)
+        else:
+            pass
 
 def add_entity(pad: 'curses._CursesWindow', entity):
     pad.addch(entity.y, entity.x, entity.rep, curses.color_pair(entity.color))
 
-def move_char(x, y, entity):
+def move_char(x, y, entity: 'Entity'):
     current_y = entity.y
     current_x = entity.x
-    print(f"x: {current_x}, y: {current_y}")
+    print(f"x: {current_x}, y: {current_y}, char: {entity.rep}")
     new_y = current_y + y
     new_x = current_x + x
 
@@ -141,7 +147,7 @@ def move_char(x, y, entity):
         or new_x < 0
         or new_y >= MAP_H
         or new_y < 0
-        or cur_map[new_y][new_x] == "3"
+        or map1[new_y][new_x] == "#"
         or hitbox(new_x, new_y)
     ):
         return False
