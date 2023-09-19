@@ -2,7 +2,7 @@ import curses
 from entity import Entity
 from time import sleep, time
 from pathfinding import find_path
-from utils import BLOCKING_TILES, DOOR_TILE, WALL_TILE, to_bin_list, toggle_door
+from utils import BLOCKING_TILES, COIN_TILE, DOOR_TILE, NONE_TILE, WALL_TILE, to_bin_list, toggle_door
 from maps import map1
 
 red_leds = 13
@@ -41,6 +41,7 @@ def window(stdscr: "curses._CursesWindow"):
     curses.init_pair(6, curses.COLOR_WHITE, curses.COLOR_BLACK)  # off
     curses.init_pair(7, curses.COLOR_RED, curses.COLOR_WHITE)
     curses.init_pair(8, curses.COLOR_RED, curses.COLOR_RED) # doors
+    curses.init_pair(10, curses.COLOR_BLACK, curses.COLOR_YELLOW) # you won
 
     win1 = curses.newwin(MAP_H + 2, MAP_W + 2, 0, 0)
     dash_win = curses.newwin(DASH_H, MAP_W + 2, MAP_H + 2, 0)
@@ -63,14 +64,21 @@ def window(stdscr: "curses._CursesWindow"):
     # entities.append(Entity(60,9, "#", 3))
 
     lights = 0
+    coins = 0
+    max_coins = 18
     last_entity_update_time = time()
     start_map = [list(row) for row in map1]
+
     game_over = False
+    you_won = False
 
     while True:
         pad1.clear()
         dash_pad.clear()
         switch_pad.clear()
+        win1.addstr(0, 3, f"|coins:_{coins}|")
+        win1.refresh()
+
 
         # draw map
         for i, line in enumerate(start_map):
@@ -78,6 +86,8 @@ def window(stdscr: "curses._CursesWindow"):
                 pair = 1
                 if tile == DOOR_TILE:
                     pair = 8
+                if tile == COIN_TILE:
+                    pair = 9
                 pad1.addch(i, j, tile, curses.color_pair(pair))
 
         current_time = time()
@@ -133,7 +143,22 @@ def window(stdscr: "curses._CursesWindow"):
                     start_map[5][11] = toggle_door(5, 11, start_map)
                 elif other == ord("d"):
                     start_map[6][12] = toggle_door(6, 12, start_map)
-        
+
+        # collect coin
+        if start_map[player.y][player.x] == COIN_TILE:
+            coins += 1
+            start_map[player.y][player.x] = NONE_TILE
+
+        # end game when all coins are collected
+        if coins == max_coins:
+            message = " You won! "
+            pad1.clear()
+            pad1.addstr(MAP_H//2, MAP_W//2 - len(message) // 2, message, curses.color_pair(10))
+            pad1.refresh(0, 0, 1, 1, MAP_H, MAP_W)
+            you_won = True
+            break
+            
+
         # draw player
         add_entity(pad1, player)
         pad1.refresh(0, 0, 1, 1, MAP_H, MAP_W)
