@@ -118,7 +118,7 @@ def window(stdscr: "curses._CursesWindow"):
             break
 
         # read switches and buttons
-        # switches_raw = comms.le_switch()
+        switches_raw = comms.le_switch()
         switches = to_bin_list(switches_raw, 18)
         buttons = to_bin_list(comms.le_botao(), 4)
 
