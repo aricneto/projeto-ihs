@@ -52,12 +52,14 @@ class Comms():
     def liga_led(self, leds, cor: 'RED | GREEN'):
         if self.fd is None:
             raise Exception("FD is closed!")
+        sleep(0.1)
         ioctl(self.fd, cor)
         return os.write(self.fd, leds.to_bytes(4, 'little'))
     
     def liga_display(self, bits, cor: 'R_DISPLAY | L_DISPLAY'):
         if self.fd is None:
             raise Exception("FD is closed!")
+        sleep(0.1)
         ioctl(self.fd, cor)
         return os.write(self.fd, bits.to_bytes(4, 'little'))
 
