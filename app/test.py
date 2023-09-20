@@ -41,6 +41,7 @@ def window(stdscr: "curses._CursesWindow"):
     curses.init_pair(6, curses.COLOR_WHITE, curses.COLOR_BLACK)  # off
     curses.init_pair(7, curses.COLOR_RED, curses.COLOR_WHITE)
     curses.init_pair(8, curses.COLOR_RED, curses.COLOR_RED) # doors
+    curses.init_pair(9, curses.COLOR_YELLOW, curses.COLOR_BLACK) # coins
     curses.init_pair(10, curses.COLOR_BLACK, curses.COLOR_YELLOW) # you won
 
     win1 = curses.newwin(MAP_H + 2, MAP_W + 2, 0, 0)
