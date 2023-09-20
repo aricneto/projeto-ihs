@@ -118,7 +118,7 @@ def window(stdscr: "curses._CursesWindow"):
             break
 
         # read switches and buttons
-        switches_raw = comms.le_switch()
+        # switches_raw = comms.le_switch()
         switches = to_bin_list(switches_raw, 18)
         buttons = to_bin_list(comms.le_botao(), 4)
 
@@ -131,7 +131,7 @@ def window(stdscr: "curses._CursesWindow"):
 
         lights += 1
 
-        # 4 push buttons act as directional keys (left, up, down, right)
+        # 4 push buttons act as directional keys (left, up, down, right) 
         match comms.le_botao():
             case 0b1101:
                 move_char(0, 1, player, start_map)
@@ -163,8 +163,8 @@ def window(stdscr: "curses._CursesWindow"):
             coins += 1
             start_map[player.y][player.x] = NONE_TILE
 
-        # turn on leds according to switches
-        comms.liga_led(switches_raw, Comms.RED)
+        # turn on leds according to switches 
+        # comms.liga_led(switches_raw, Comms)
 
         # end game when all coins are collected
         if coins == max_coins:
