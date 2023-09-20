@@ -118,7 +118,8 @@ def window(stdscr: "curses._CursesWindow"):
             break
 
         # read switches and buttons
-        switches = to_bin_list(comms.le_switch(), 18)
+        switches_raw = comms.le_switch()
+        switches = to_bin_list(switches_raw, 18)
         buttons = to_bin_list(comms.le_botao(), 4)
 
         # draw dashboard
@@ -161,6 +162,9 @@ def window(stdscr: "curses._CursesWindow"):
         if start_map[player.y][player.x] == COIN_TILE:
             coins += 1
             start_map[player.y][player.x] = NONE_TILE
+
+        # turn on leds according to switches
+        comms.liga_led(switches_raw, Comms.RED)
 
         # end game when all coins are collected
         if coins == max_coins:
