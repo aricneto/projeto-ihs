@@ -124,8 +124,8 @@ def window(stdscr: "curses._CursesWindow"):
         buttons = to_bin_list(buttons_raw, 4)
 
         # draw dashboard
-        draw_leds(dash_pad, to_bin_list(lights, 18), 18, 0, 5)
-        draw_leds(dash_pad, to_bin_list(lights, 8), 8, 45, 4)
+        draw_leds(dash_pad, switches, 18, 0, 5)
+        draw_leds(dash_pad, buttons, 8, 45, 4)
 
         draw_leds(switch_pad, buttons, 4, 49, 7, "_", "|", negate=True)
         draw_leds(switch_pad, switches, 18, 0, 7, "_", "|")
@@ -190,7 +190,8 @@ def window(stdscr: "curses._CursesWindow"):
             start_map[player.y][player.x] = NONE_TILE
 
         # turn on leds according to switches 
-        # comms.liga_led(switches_raw, Comms)
+        # comms.liga_led(switches_raw, Comms.RED)
+        # comms.liga_led(buttons_raw, Comms.GREEN)
 
         # end game when all coins are collected
         if coins == max_coins:
