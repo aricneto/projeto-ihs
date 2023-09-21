@@ -127,7 +127,7 @@ def window(stdscr: "curses._CursesWindow"):
         draw_leds(switch_pad, buttons, 4, 49, 7, "_", "|", negate=True)
         draw_leds(switch_pad, switches, 18, 0, 7, "_", "|")
 
-        lights += 1
+        #lights += 1
 
         # 4 push buttons act as directional keys (left, up, down, right)
         match comms.le_botao():
@@ -147,14 +147,39 @@ def window(stdscr: "curses._CursesWindow"):
             close_door(4, 10, start_map)
         else:
             open_door(4, 10, start_map)
+
         if (switches[16] == 1):
             close_door(4, 35, start_map)
         else:
             open_door(4, 35, start_map)
+
         if (switches[15] == 1):
             close_door(6, 14, start_map)
         else:
             open_door(6, 14, start_map)
+
+        if (switches[14] == 1):
+            close_door(7, 3, start_map)
+            close_door(7, 2, start_map)
+            open_door(6, 28, start_map)
+        else:
+            open_door(7, 3, start_map)
+            open_door(7, 2, start_map)
+            close_door(6, 28, start_map)
+
+        if (switches[13] == 1):
+            close_door(5, 44, start_map)
+            close_door(5, 46, start_map)
+        else:
+            open_door(5, 44, start_map)
+            open_door(5, 46, start_map)
+
+        if (switches[12] == 1):
+            open_door(9, 31, start_map)
+            close_door(10, 30, start_map)
+        else:
+            close_door(9, 31, start_map)
+            open_door(10, 30, start_map)
 
         # collect coin
         if start_map[player.y][player.x] == COIN_TILE:
