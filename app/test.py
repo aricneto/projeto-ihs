@@ -41,6 +41,7 @@ def window(stdscr: "curses._CursesWindow"):
     curses.init_pair(6, curses.COLOR_WHITE, curses.COLOR_BLACK)  # off
     curses.init_pair(7, curses.COLOR_RED, curses.COLOR_WHITE)
     curses.init_pair(8, curses.COLOR_RED, curses.COLOR_RED) # doors
+    curses.init_pair(9, curses.COLOR_YELLOW, curses.COLOR_BLACK) # coins
     curses.init_pair(10, curses.COLOR_BLACK, curses.COLOR_YELLOW) # you won
 
     win1 = curses.newwin(MAP_H + 2, MAP_W + 2, 0, 0)
@@ -117,7 +118,8 @@ def window(stdscr: "curses._CursesWindow"):
             break
 
         # read switches and buttons
-        switches = to_bin_list(comms.le_switch(), 18)
+        switches_raw = comms.le_switch()
+        switches = to_bin_list(switches_raw, 18)
         buttons = to_bin_list(comms.le_botao(), 4)
 
         # draw dashboard
@@ -129,7 +131,7 @@ def window(stdscr: "curses._CursesWindow"):
 
         #lights += 1
 
-        # 4 push buttons act as directional keys (left, up, down, right)
+        # 4 push buttons act as directional keys (left, up, down, right) 
         match comms.le_botao():
             case 0b1101:
                 move_char(0, 1, player, start_map)
@@ -185,6 +187,9 @@ def window(stdscr: "curses._CursesWindow"):
         if start_map[player.y][player.x] == COIN_TILE:
             coins += 1
             start_map[player.y][player.x] = NONE_TILE
+
+        # turn on leds according to switches 
+        # comms.liga_led(switches_raw, Comms)
 
         # end game when all coins are collected
         if coins == max_coins:
