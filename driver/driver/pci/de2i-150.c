@@ -356,8 +356,8 @@ static int __init my_pci_probe(struct pci_dev *dev, const struct pci_device_id *
     bar0_mmio = pci_iomap(dev, 0, bar_len);
 
     /* initialize a default peripheral read and write pointer */
-    write_pointer = bar0_mmio + 0xF040; //TODO: update offset
-    read_pointer  = bar0_mmio + 0xF080; //TODO: update offset
+    write_pointer = bar0_mmio + 0xF040;
+    read_pointer  = bar0_mmio + 0xF080;
 
     return 0;
 }
