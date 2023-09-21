@@ -188,6 +188,10 @@ def window(stdscr: "curses._CursesWindow"):
         if start_map[player.y][player.x] == COIN_TILE:
             coins += 1
             start_map[player.y][player.x] = NONE_TILE
+            # lights = 0
+            # for _ in range(coins):
+            #     lights = (lights << 1) + 1
+            # comms.liga_led(lights, Comms.RED)
 
         # turn on leds according to switches 
         # comms.liga_led(switches_raw, Comms.RED)

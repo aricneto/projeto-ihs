@@ -11,7 +11,7 @@
 #include "../../include/ioctl_cmds.h"
 
 /* meta information */
-
+// blablablá necessário pra o driver funcionar
 MODULE_LICENSE("GPL");
 MODULE_AUTHOR("mfbsouza");
 MODULE_DESCRIPTION("simple pci driver for DE2i-150 dev board");
@@ -19,17 +19,19 @@ MODULE_DESCRIPTION("simple pci driver for DE2i-150 dev board");
 /* driver constants */
 
 #define DRIVER_NAME      "my_driver"
-#define FILE_NAME        "mydev"
+#define FILE_NAME        "mydev" // nome que vai ser usado pra o device file
 #define DRIVER_CLASS     "MyModuleClass"
-#define MY_PCI_VENDOR_ID  0x1172
-#define MY_PCI_DEVICE_ID  0x0004
+#define MY_PCI_VENDOR_ID  0x1172 // definido no mapeamento do quartus
+#define MY_PCI_DEVICE_ID  0x0004 // definido no mapeamento do quartus
 
 /* lkm entry and exit functions */
 
-static int  __init my_init (void);
-static void __exit my_exit (void);
+static int  __init my_init (void); // função executada quando o driver é instalado
+static void __exit my_exit (void); // função executada quando o driver é removido 
 
 /* char device system calls */
+
+// headers dos file operations que vao ser utilizados no char driver
 
 static int         my_open   (struct inode*, struct file*);
 static int         my_close  (struct inode*, struct file*);
@@ -39,24 +41,29 @@ static long int    my_ioctl  (struct file*, unsigned int, unsigned long);
 
 /* pci functions */
 
+// headers das funçoes PCI que vao ser utilizadas pelo driver PCI
+
 static int  __init my_pci_probe  (struct pci_dev *dev, const struct pci_device_id *id);
 static void __exit my_pci_remove (struct pci_dev *dev);
 
 /* pci ids which this driver supports */
 
 static struct pci_device_id pci_ids[] = {
-    {PCI_DEVICE(MY_PCI_VENDOR_ID, MY_PCI_DEVICE_ID), },
+    {PCI_DEVICE(MY_PCI_VENDOR_ID, MY_PCI_DEVICE_ID), }, // vendor id e device ID definidos anteriormente (no quartus)
     {0, }
 };
-MODULE_DEVICE_TABLE(pci, pci_ids);
+MODULE_DEVICE_TABLE(pci, pci_ids); // expoe o driver e os dispositivos suportados para o kernel
 
 /* device file operations */
 
 static struct file_operations fops = {
-    .owner = THIS_MODULE,
+    // THIS_MODULE é um macro que aponta para o modulo que chamou o macro.
+    // o owner impede que o módulo seja removido enquanto está sendo usado
+    .owner = THIS_MODULE, 
     .read = my_read,
     .write = my_write,
-    .unlocked_ioctl = my_ioctl,
+    // ioctl varia de acordo com o driver, mas em geral manipula os parâmetros relacionados à operações com device files (ponteiros, etc)
+    .unlocked_ioctl = my_ioctl, 
     .open = my_open,
     .release = my_close
 };
@@ -66,15 +73,16 @@ static struct file_operations fops = {
 static struct pci_driver pci_ops = {
     .name = DRIVER_NAME,
     .id_table = pci_ids,
-    .probe = my_pci_probe,
+    // o probe é chamado quando o kernel identifica que um dispositivo conectado é suportado por esse driver (conforme listado em MODULE_DEVICE_TABLE)
+    .probe = my_pci_probe, 
     .remove = my_pci_remove
 };
 
 /* variables for char device registration to kernel */
 
-static dev_t my_device_nbr;
+static dev_t my_device_nbr;  // device number
 static struct class* my_class;
-static struct cdev my_device;
+static struct cdev my_device; // struct que representa o char device
 
 /* --- device data --- */
 /* PCI BARs mapped to virtual space */
@@ -135,6 +143,9 @@ static int __init my_init(void)
     printk("my_driver: device number %d was registered!\n", MAJOR(my_device_nbr));
 
     /* 2. create class : appears at /sys/class */
+    // abstração de alto nivel que estrutura e organiza devices no kernel
+    // é usado pelo sistema para identificar dispositivos e automaticamente gerar device files baseados
+    // em suas caracteristicas (major, minor number)
     if ((my_class = class_create(THIS_MODULE, DRIVER_CLASS)) == NULL) {
         printk("my_driver: device class count not be created!\n");
         goto ClassError;

@@ -3,17 +3,4 @@
     "files.associations": {
         "ioctl_cmds.h": "c"
     },
-    "workbench.colorCustomizations": {
-        "[Monokai Pro (Filter Octagon)]": {
-            "editorActiveLineNumber.foreground": "#92f06d"
-        },
-        "[Hopscotch]": {
-            "statusBar.background": "#ff0000",
-            "editor.background": "#6b2b58",
-            "sideBar.background": "#42ff62"
-        },
-        "activityBar.background": "#2C2F19",
-        "titleBar.activeBackground": "#3E4222",
-        "titleBar.activeForeground": "#FAFAF6"
-    },
 }
