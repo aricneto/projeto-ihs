@@ -119,8 +119,9 @@ def window(stdscr: "curses._CursesWindow"):
 
         # read switches and buttons
         switches_raw = comms.le_switch()
+        buttons_raw = comms.le_botao()
         switches = to_bin_list(switches_raw, 18)
-        buttons = to_bin_list(comms.le_botao(), 4)
+        buttons = to_bin_list(buttons_raw, 4)
 
         # draw dashboard
         draw_leds(dash_pad, to_bin_list(lights, 18), 18, 0, 5)
@@ -132,7 +133,7 @@ def window(stdscr: "curses._CursesWindow"):
         #lights += 1
 
         # 4 push buttons act as directional keys (left, up, down, right) 
-        match comms.le_botao():
+        match buttons_raw:
             case 0b1101:
                 move_char(0, 1, player, start_map)
             case 0b1011:
